@@ -38,4 +38,4 @@ cat $i \
 done
 ```
 
-Example repeatability analysis [here](results-analysis.R)
+Example repeatability analysis with [results-analysis.R](results-analysis.R)
