@@ -1,0 +1,282 @@
+// HARD-CODED PARAMETERS
+// five QTL; one focal QTL
+// ten phenotypes
+// non-focal QTL mutational correlations == 0.75
+// p1 post-burn-in optima: 0,0
+// p2 post-burn-in optima: -10,0
+
+// VARIABLES
+// MIG: migration rate
+// PLEIO: focal QTL mutational correlations
+// EFF: all QTL mutation effect magnitude (a^2)
+
+initialize() {
+	initializeMutationRate(1e-7);
+	
+	// set up separate chromosomes
+	rates = c(rep(c(2.5e-6, 0.5), 4), 1e-8);
+	ends = c(499, 500, 999, 1000, 1499, 1500, 1999, 2000, 2499);
+	initializeRecombinationRate(rates, ends);
+	
+	// non-focal QTL mutation
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	m1.convertToSubstitution = F;
+	m1.color = "red";
+	
+	// focal QTL mutation
+	initializeMutationType("m2", 0.5, "f", 0.0);
+	m2.convertToSubstitution = F;
+	m2.color = "green";
+	
+	// non-focal QTL
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// focal QTL
+	initializeGenomicElementType("g2", m2, 1.0);
+		
+	// CHROMOSOME STRUCTURE (5 QTL)
+	initializeGenomicElement(g2, 0, 499);
+	initializeGenomicElement(g1, 500, 999);
+	initializeGenomicElement(g1, 1000, 1499);
+	initializeGenomicElement(g1, 1500, 1999);
+	initializeGenomicElement(g1, 2000, 2499);
+	
+	defineConstant("VS", 125);
+	
+	// CORRELATION
+	defineConstant("m1_corr", 0.75);
+	defineConstant("m2_corr", PLEIO);
+	
+	// VARIANCE
+	defineConstant("m1_var", EFF);
+	defineConstant("m2_var", EFF);
+	
+	// QTL-related constants
+	defineConstant("m1_mu", c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	defineConstant("m2_mu", c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	
+	defineConstant("m1_cov", m1_corr * m1_var);
+	defineConstant("m2_cov", m2_corr * m2_var);
+	
+	defineConstant("m1_sigma", matrix(c(m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_cov, m1_var), nrow=10));
+	defineConstant("m2_sigma", matrix(c(m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_cov, m2_var ), nrow=10));
+	
+	// phenotypic optima
+	defineConstant("opt_p1", c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	defineConstant("opt_p2", c(-10, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+}
+
+// create 2 subpopulations with 1000 individuals each
+1 late() {
+	sim.addSubpop("p1", 1000);
+	sim.addSubpop("p2", 1000);
+	p1.setMigrationRates(c(p2), c(MIG));
+	p2.setMigrationRates(c(p1), c(MIG));
+}
+
+// draw mutational effects for new non-focal QTL mutation
+mutation(m1) {
+	effects = rmvnorm(1, m1_mu, m1_sigma);
+	mut.setValue("e0", effects[0]);
+	mut.setValue("e1", effects[1]);
+	mut.setValue("e2", effects[2]);
+	mut.setValue("e3", effects[3]);
+	mut.setValue("e4", effects[4]);
+	mut.setValue("e5", effects[5]);
+	mut.setValue("e6", effects[6]);
+	mut.setValue("e7", effects[7]);
+	mut.setValue("e8", effects[8]);
+	mut.setValue("e9", effects[9]);
+	return T;
+}
+
+// draw mutational effects for new focal QTL mutation
+mutation(m2) {
+	effects = rmvnorm(1, m2_mu, m2_sigma);
+	mut.setValue("e0", effects[0]);
+	mut.setValue("e1", effects[1]);
+	mut.setValue("e2", effects[2]);
+	mut.setValue("e3", effects[3]);
+	mut.setValue("e4", effects[4]);
+	mut.setValue("e5", effects[5]);
+	mut.setValue("e6", effects[6]);
+	mut.setValue("e7", effects[7]);
+	mut.setValue("e8", effects[8]);
+	mut.setValue("e9", effects[9]);
+	return T;
+}
+
+1:20000 late() {
+	for (subpop in c(p1, p2))
+	{
+		for (ind in subpop.individuals)
+		{
+			// construct phenotypes from additive effects of QTL mutations
+			muts1 = ind.genomes.mutationsOfType(m1);
+			muts2 = ind.genomes.mutationsOfType(m2);
+			phenotype0 = size(muts1) ? sum(muts1.getValue("e0")) else 0.0;
+			phenotype0 = size(muts2) ? phenotype0 + sum(muts2.getValue("e0")) else phenotype0;
+			phenotype1 = size(muts1) ? sum(muts1.getValue("e1")) else 0.0;
+			phenotype1 = size(muts2) ? phenotype1 + sum(muts2.getValue("e1")) else phenotype1;
+			phenotype2 = size(muts1) ? sum(muts1.getValue("e2")) else 0.0;
+			phenotype2 = size(muts2) ? phenotype2 + sum(muts2.getValue("e2")) else phenotype2;
+			phenotype3 = size(muts1) ? sum(muts1.getValue("e3")) else 0.0;
+			phenotype3 = size(muts2) ? phenotype3 + sum(muts2.getValue("e3")) else phenotype3;
+			phenotype4 = size(muts1) ? sum(muts1.getValue("e4")) else 0.0;
+			phenotype4 = size(muts2) ? phenotype4 + sum(muts2.getValue("e4")) else phenotype4;
+			phenotype5 = size(muts1) ? sum(muts1.getValue("e5")) else 0.0;
+			phenotype5 = size(muts2) ? phenotype5 + sum(muts2.getValue("e5")) else phenotype5;
+			phenotype6 = size(muts1) ? sum(muts1.getValue("e6")) else 0.0;
+			phenotype6 = size(muts2) ? phenotype6 + sum(muts2.getValue("e6")) else phenotype6;
+			phenotype7 = size(muts1) ? sum(muts1.getValue("e7")) else 0.0;
+			phenotype7 = size(muts2) ? phenotype7 + sum(muts2.getValue("e7")) else phenotype7;
+			phenotype8 = size(muts1) ? sum(muts1.getValue("e8")) else 0.0;
+			phenotype8 = size(muts2) ? phenotype8 + sum(muts2.getValue("e8")) else phenotype8;
+			phenotype9 = size(muts1) ? sum(muts1.getValue("e9")) else 0.0;
+			phenotype9 = size(muts2) ? phenotype9 + sum(muts2.getValue("e9")) else phenotype9;
+
+			ind.setValue("phenotype0", phenotype0);
+			ind.setValue("phenotype1", phenotype1);
+			ind.setValue("phenotype2", phenotype2);
+			ind.setValue("phenotype3", phenotype3);
+			ind.setValue("phenotype4", phenotype4);
+			ind.setValue("phenotype5", phenotype5);
+			ind.setValue("phenotype6", phenotype6);
+			ind.setValue("phenotype7", phenotype7);
+			ind.setValue("phenotype8", phenotype8);
+			ind.setValue("phenotype9", phenotype9);
+					
+			// calculate fitness effects
+			QTL_optima = opt_p1;
+			effect0 = exp(-1*(QTL_optima[0] - phenotype0)^2 /(2*VS));
+			effect1 = exp(-1*(QTL_optima[1] - phenotype1)^2 /(2*VS));
+			effect2 = exp(-1*(QTL_optima[2] - phenotype1)^2 /(2*VS));
+			effect3 = exp(-1*(QTL_optima[3] - phenotype1)^2 /(2*VS));
+			effect4 = exp(-1*(QTL_optima[4] - phenotype1)^2 /(2*VS));
+			effect5 = exp(-1*(QTL_optima[5] - phenotype1)^2 /(2*VS));
+			effect6 = exp(-1*(QTL_optima[6] - phenotype1)^2 /(2*VS));
+			effect7 = exp(-1*(QTL_optima[7] - phenotype1)^2 /(2*VS));
+			effect8 = exp(-1*(QTL_optima[8] - phenotype1)^2 /(2*VS));
+			effect9 = exp(-1*(QTL_optima[9] - phenotype1)^2 /(2*VS));
+			ind.fitnessScaling = effect0 * effect1 * effect2 * effect3 * effect4 * effect5 * effect6 * effect7 * effect8 * effect9;
+		}
+	}
+}
+
+20000:40000 late() {
+	for (subpop in c(p1, p2))
+	{
+		for (ind in subpop.individuals)
+		{
+			// construct phenotypes from additive effects of QTL mutations
+			muts1 = ind.genomes.mutationsOfType(m1);
+			muts2 = ind.genomes.mutationsOfType(m2);
+			phenotype0 = size(muts1) ? sum(muts1.getValue("e0")) else 0.0;
+			phenotype0 = size(muts2) ? phenotype0 + sum(muts2.getValue("e0")) else phenotype0;
+			phenotype1 = size(muts1) ? sum(muts1.getValue("e1")) else 0.0;
+			phenotype1 = size(muts2) ? phenotype1 + sum(muts2.getValue("e1")) else phenotype1;
+			phenotype2 = size(muts1) ? sum(muts1.getValue("e2")) else 0.0;
+			phenotype2 = size(muts2) ? phenotype2 + sum(muts2.getValue("e2")) else phenotype2;
+			phenotype3 = size(muts1) ? sum(muts1.getValue("e3")) else 0.0;
+			phenotype3 = size(muts2) ? phenotype3 + sum(muts2.getValue("e3")) else phenotype3;
+			phenotype4 = size(muts1) ? sum(muts1.getValue("e4")) else 0.0;
+			phenotype4 = size(muts2) ? phenotype4 + sum(muts2.getValue("e4")) else phenotype4;
+			phenotype5 = size(muts1) ? sum(muts1.getValue("e5")) else 0.0;
+			phenotype5 = size(muts2) ? phenotype5 + sum(muts2.getValue("e5")) else phenotype5;
+			phenotype6 = size(muts1) ? sum(muts1.getValue("e6")) else 0.0;
+			phenotype6 = size(muts2) ? phenotype6 + sum(muts2.getValue("e6")) else phenotype6;
+			phenotype7 = size(muts1) ? sum(muts1.getValue("e7")) else 0.0;
+			phenotype7 = size(muts2) ? phenotype7 + sum(muts2.getValue("e7")) else phenotype7;
+			phenotype8 = size(muts1) ? sum(muts1.getValue("e8")) else 0.0;
+			phenotype8 = size(muts2) ? phenotype8 + sum(muts2.getValue("e8")) else phenotype8;
+			phenotype9 = size(muts1) ? sum(muts1.getValue("e9")) else 0.0;
+			phenotype9 = size(muts2) ? phenotype9 + sum(muts2.getValue("e9")) else phenotype9;
+
+			ind.setValue("phenotype0", phenotype0);
+			ind.setValue("phenotype1", phenotype1);
+			ind.setValue("phenotype2", phenotype2);
+			ind.setValue("phenotype3", phenotype3);
+			ind.setValue("phenotype4", phenotype4);
+			ind.setValue("phenotype5", phenotype5);
+			ind.setValue("phenotype6", phenotype6);
+			ind.setValue("phenotype7", phenotype7);
+			ind.setValue("phenotype8", phenotype8);
+			ind.setValue("phenotype9", phenotype9);
+		
+			// calculate fitness effects
+			QTL_optima = (subpop == p1 ? opt_p1 else opt_p2);
+			effect0 = exp(-1*(QTL_optima[0] - phenotype0)^2 /(2*VS));
+			effect1 = exp(-1*(QTL_optima[1] - phenotype1)^2 /(2*VS));
+			effect2 = exp(-1*(QTL_optima[2] - phenotype1)^2 /(2*VS));
+			effect3 = exp(-1*(QTL_optima[3] - phenotype1)^2 /(2*VS));
+			effect4 = exp(-1*(QTL_optima[4] - phenotype1)^2 /(2*VS));
+			effect5 = exp(-1*(QTL_optima[5] - phenotype1)^2 /(2*VS));
+			effect6 = exp(-1*(QTL_optima[6] - phenotype1)^2 /(2*VS));
+			effect7 = exp(-1*(QTL_optima[7] - phenotype1)^2 /(2*VS));
+			effect8 = exp(-1*(QTL_optima[8] - phenotype1)^2 /(2*VS));
+			effect9 = exp(-1*(QTL_optima[9] - phenotype1)^2 /(2*VS));
+			ind.fitnessScaling = effect0 * effect1 * effect2 * effect3 * effect4 * effect5 * effect6 * effect7 * effect8 * effect9;
+		}
+	}
+	
+	// output, run every 1000 generations
+ 	if (sim.generation % 1000 != 0)
+		return;
+
+	// MUTATIONS IN NON-FOCAL QTL
+	QTL_m1 = sim.mutationsOfType(m1);
+	
+	// subpopulation frequencies
+	p1_m1_f = sim.mutationFrequencies(p1, QTL_m1);
+	p2_m1_f = sim.mutationFrequencies(p2, QTL_m1);
+	
+	// mutation location
+	m1_p = QTL_m1.position;
+	
+	// phenotype 0 effect size (non-focal QTL)
+	if (size(QTL_m1) != 0) m1_e0 = QTL_m1.getValue("e0");
+	
+	// other phenotype effect sizes (non-focal QTL)
+	if (size(QTL_m1) != 0) m1_e1 = QTL_m1.getValue("e1");
+	if (size(QTL_m1) != 0) m1_e2 = QTL_m1.getValue("e2");
+	if (size(QTL_m1) != 0) m1_e3 = QTL_m1.getValue("e3");
+	if (size(QTL_m1) != 0) m1_e4 = QTL_m1.getValue("e4");
+	if (size(QTL_m1) != 0) m1_e5 = QTL_m1.getValue("e5");
+	if (size(QTL_m1) != 0) m1_e6 = QTL_m1.getValue("e6");
+	if (size(QTL_m1) != 0) m1_e7 = QTL_m1.getValue("e7");
+	if (size(QTL_m1) != 0) m1_e8 = QTL_m1.getValue("e8");
+	if (size(QTL_m1) != 0) m1_e9 = QTL_m1.getValue("e9");
+	
+	// output location, effect sizes, subpop frequencies
+	for (i in seqAlong(QTL_m1))
+	catn(sim.generation + " " + m1_p[i] + " " + m1_e0[i] + " " + m1_e1[i] + " "  + m1_e2[i] + " " + m1_e3[i] + " " + m1_e4[i] + " " + m1_e5[i] + " " + m1_e6[i] + " " + m1_e7[i] + " " + m1_e8[i] + " " + m1_e9[i] + " " + p1_m1_f[i]+ " " + p2_m1_f[i]);
+	
+	// MUTATIONS IN FOCAL QTL
+	QTL_m2 = sim.mutationsOfType(m2);
+	
+	// subpopulation frequencies
+	p1_m2_f = sim.mutationFrequencies(p1, QTL_m2);
+	p2_m2_f = sim.mutationFrequencies(p2, QTL_m2);
+	
+	// mutation location	
+	m2_p = QTL_m2.position;
+	
+	// phenotype 0 effect size (focal QTL)
+	if (size(QTL_m2) != 0) m2_e0 = QTL_m2.getValue("e0");
+	
+	// phenotype 1 effect size (focal QTL)
+	if (size(QTL_m2) != 0) m2_e1 = QTL_m2.getValue("e1");
+	if (size(QTL_m2) != 0) m2_e2 = QTL_m2.getValue("e2");
+	if (size(QTL_m2) != 0) m2_e3 = QTL_m2.getValue("e3");
+	if (size(QTL_m2) != 0) m2_e4 = QTL_m2.getValue("e4");
+	if (size(QTL_m2) != 0) m2_e5 = QTL_m2.getValue("e5");
+	if (size(QTL_m2) != 0) m2_e6 = QTL_m2.getValue("e6");
+	if (size(QTL_m2) != 0) m2_e7 = QTL_m2.getValue("e7");
+	if (size(QTL_m2) != 0) m2_e8 = QTL_m2.getValue("e8");
+	if (size(QTL_m2) != 0) m2_e9 = QTL_m2.getValue("e9");
+
+		
+	// output location, effect sizes, subpop frequencies
+	for (i in seqAlong(QTL_m2))
+	catn(sim.generation + " " + m2_p[i] + " " + m2_e0[i] + " " + m2_e1[i] + " "  + m2_e2[i] + " " + m2_e3[i] + " " + m2_e4[i] + " " + m2_e5[i] + " " + m2_e6[i] + " " + m2_e7[i] + " " + m2_e8[i] + " " + m2_e9[i] + " " + p1_m2_f[i]+ " " + p2_m2_f[i]);
+}
